@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg-primary, #f8f9fa); color: #1a1a1a; font-size: 13px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
+
+  /* ── HEADER ── */
+  .header { background: #fff; border-bottom: 2px solid #e0e0e0; padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .header-title { font-size: 15px; font-weight: 700; }
+  .header-sub { font-size: 11px; color: #666; margin-top: 2px; }
+  .legend-resp { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+  .legend-resp-item { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 500; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+  /* ── BOARD ── */
+  .board { display: flex; gap: 0; overflow-x: auto; padding: 14px 16px; min-height: calc(100vh - 140px); }
+  .sprint-col { min-width: 268px; max-width: 285px; flex-shrink: 0; margin-right: 12px; }
+  .sprint-header { padding: 9px 13px; border-radius: 8px 8px 0 0; font-weight: 700; font-size: 12px; color: #fff; text-align: center; }
+  .sprint-date { font-size: 10px; font-weight: 400; opacity: 0.85; margin-top: 1px; }
+  .sprint-body { background: #f1f5f9; border-radius: 0 0 8px 8px; padding: 9px; min-height: 380px; display: flex; flex-direction: column; gap: 5px; }
+
+  .s2 .sprint-header { background: #1d4ed8; }
+  .s3 .sprint-header { background: #0369a1; }
+  .s4 .sprint-header { background: #0891b2; }
+  .s5 .sprint-header { background: #0d9488; }
+  .s6 .sprint-header { background: #059669; }
+  .s7 .sprint-header { background: #2d6a4f; }
+
+  /* ── CARD ── */
+  .card {
+    background: #fff;
+    border-radius: 7px;
+    padding: 0;
+    border-left: 4px solid #ccc;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07);
+    transition: box-shadow 0.15s;
+    cursor: pointer;
+    overflow: hidden;
+  }
+  .card:hover { box-shadow: 0 3px 10px rgba(0,0,0,0.14); }
+
+  /* Epic top stripe */
+  .card-epic-bar { height: 4px; width: 100%; }
+
+  .card-inner { padding: 8px 10px; }
+
+  /* Responsible border colors */
+  .card.dados  { border-left-color: #2563eb; }
+  .card.erp    { border-left-color: #16a34a; }
+  .card.po     { border-left-color: #d97706; }
+  .card.ux     { border-left-color: #7c3aed; }
+  .card.arq    { border-left-color: #64748b; }
+  .card.multi  { border-left-color: #d97706; }
+
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 4px; margin-bottom: 4px; }
+  .card-id  { font-size: 10px; font-weight: 700; color: #888; white-space: nowrap; }
+  .badges   { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+  .badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 600; white-space: nowrap; }
+  .badge-urgente { background: #fee2e2; color: #b91c1c; }
+  .badge-critico { background: #fef3c7; color: #92400e; }
+  .badge-paralelo { background: #dbeafe; color: #1e40af; }
+  .badge-decisao  { background: #fce7f3; color: #9d174d; }
+  .badge-gate     { background: #ede9fe; color: #5b21b6; }
+
+  /* Jira code + title together */
+  .card-title-block { margin-bottom: 5px; }
+  .card-jira { font-size: 10px; font-weight: 700; color: #6b7280; font-family: 'SF Mono', 'Fira Code', monospace; letter-spacing: 0.2px; margin-bottom: 2px; }
+  .card-title { font-size: 12px; font-weight: 600; color: #1a1a1a; line-height: 1.35; }
+
+  .card-bottom { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+  .card-resp { display: flex; flex-wrap: wrap; gap: 3px; }
+  .resp-chip { font-size: 10px; padding: 2px 6px; border-radius: 10px; color: #fff; font-weight: 500; }
+  .resp-dados { background: #2563eb; }
+  .resp-erp   { background: #16a34a; }
+  .resp-po    { background: #d97706; }
+  .resp-ux    { background: #7c3aed; }
+  .resp-arq   { background: #64748b; }
+
+  /* Epic pill on card */
+  .epic-pill { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; color: #fff; white-space: nowrap; letter-spacing: 0.2px; }
+
+  .card-dep { margin-top: 4px; font-size: 10px; color: #64748b; }
+  .dep-tag { display: inline-block; background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 3px; padding: 1px 4px; margin-right: 2px; margin-bottom: 2px; }
+
+  .section-divider { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; padding: 4px 0 2px; border-bottom: 1px solid #e2e8f0; margin: 4px 0 2px; }
+  .parallel-note { font-size: 10px; color: #2563eb; font-style: italic; padding: 3px 7px; background: #eff6ff; border-radius: 4px; border: 1px dashed #bfdbfe; margin-bottom: 2px; }
+
+  /* ── MODAL ── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 12px; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); }
+  .modal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 4px; gap: 10px; }
+  .modal-jira { font-size: 11px; font-weight: 700; color: #6b7280; font-family: monospace; margin-bottom: 6px; }
+  .modal-title { font-size: 14px; font-weight: 700; line-height: 1.4; }
+  .modal-close { background: none; border: none; font-size: 20px; cursor: pointer; color: #888; padding: 0 4px; flex-shrink: 0; }
+  .modal-section { margin-top: 12px; }
+  .modal-label { font-size: 10px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .modal-value { font-size: 13px; color: #1a1a1a; line-height: 1.5; }
+  .modal-epic-tag { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 4px; color: #fff; margin-top: 6px; }
+
+  /* ── FOOTER LEGEND ── */
+  .footer { background: #fff; border-top: 2px solid #e0e0e0; padding: 10px 20px; }
+  .footer-title { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .footer-epics { display: flex; flex-wrap: wrap; gap: 8px; }
+  .epic-legend-item { display: flex; align-items: center; gap: 6px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 5px 10px; cursor: default; }
+  .epic-legend-bar { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .epic-legend-code { font-size: 10px; font-weight: 700; color: #64748b; font-family: monospace; }
+  .epic-legend-name { font-size: 11px; font-weight: 500; color: #374151; }
+
+  @media (max-width: 700px) {
+    .board { flex-direction: column; }
+    .sprint-col { min-width: 100%; max-width: 100%; }
+  }
+</style>
+</head>
+<body>
+<h2 class="sr-only">Plano de Sprints Starship 2026 com códigos Jira e legenda de épicos por cor</h2>
+
+<div class="header">
+  <div>
+    <div class="header-title">🚀 Starship — Plano de Sprints 2026</div>
+    <div class="header-sub">Agente de Performance de Piso · Protheus Varejo · Sprints de 3 semanas (15 dias úteis)</div>
+  </div>
+  <div class="legend-resp">
+    <div class="legend-resp-item"><div class="dot" style="background:#2563eb"></div>Alexandre (CiDados)</div>
+    <div class="legend-resp-item"><div class="dot" style="background:#16a34a"></div>Nilson (Dev ERP)</div>
+    <div class="legend-resp-item"><div class="dot" style="background:#d97706"></div>Fábio (PO)</div>
+    <div class="legend-resp-item"><div class="dot" style="background:#7c3aed"></div>Moisés (UX)</div>
+    <div class="legend-resp-item"><div class="dot" style="background:#64748b"></div>Felippe/João (Arq)</div>
+  </div>
+</div>
+
+<div class="board" id="board"></div>
+
+<div class="footer">
+  <div class="footer-title">Legenda de Épicos</div>
+  <div class="footer-epics" id="epicLegend"></div>
+</div>
+
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modalContent">
+    <div class="modal-header">
+      <div>
+        <div class="modal-jira" id="modalJira"></div>
+        <div class="modal-title" id="modalTitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const EPICS = {
+  E1: { label: 'E1', code: 'DVARPR-94',  name: 'Modelagem de Dados Local no Protheus',      color: '#6366f1' },
+  E2: { label: 'E2', code: 'DVARPR-282', name: 'Processo Background de Geração de Ranking',  color: '#0891b2' },
+  E3: { label: 'E3', code: 'DVARPR-288', name: 'Integração com LYNN',                        color: '#d946ef' },
+  E4: { label: 'E4', code: 'DVARPR-298', name: 'Tela de Performance de Piso',                color: '#f59e0b' },
+  E5: { label: 'E5', code: 'DVARPR-302', name: 'Configuração e Governança do Agente',        color: '#ec4899' },
+  D1: { label: 'D1', code: 'DVARPR-305', name: 'Configuração Carol e SmartLink Upstream',    color: '#10b981' },
+  D2: { label: 'D2', code: 'DVARPR-313', name: 'Pipelines na Refinaria',                     color: '#3b82f6' },
+  D3: { label: 'D3', code: 'DVARPR-318', name: 'MCP Tools e Configuração do Agente LYNN',   color: '#8b5cf6' },
+};
+
+const sprints = [
+  {
+    id: 's2', name: 'Retaguarda Sprint 2 - 26', date: '21 Mai → 06 Jun 2026',
+    parallelNote: '⚡ 4 frentes simultâneas — máximo paralelismo',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D1.1', jira:'DVARPR-306', epic:'D1', color:'dados',
+          title:'Configurar Tenant e Credenciais no Carol',
+          resp:[{l:'Alexandre',c:'resp-dados'}],
+          badges:[{l:'🔴 URGENTE ≤29/Mai',c:'badge-urgente'},{l:'⚡ Paralelo',c:'badge-paralelo'}],
+          dep:[],
+          detail:'Configura o tenant Carol e credenciais SmartLink para o projeto Starship. Inclui provisionar tenant isolado, definir roles (CiDados: read/write, PO: read), gerar credenciais de serviço armazenadas em cofre. Primeiro bloqueio do caminho crítico — iniciar semana 1.',
+          ac:'Tenant acessível pelo time; credenciais seguras; acesso validado por todos os membros.' },
+        { id:'D1.2', jira:'DVARPR-307', epic:'D1', color:'dados',
+          title:'Registrar as 10 Tabelas no App SmartLink',
+          resp:[{l:'Alexandre',c:'resp-dados'}],
+          badges:[{l:'⚡ Seq. D1.1',c:'badge-paralelo'}],
+          dep:['D1.1'],
+          detail:'Registra as 10 tabelas no App SmartLink: SL1, SL2, SL4, SF1, SD1, SA3, SB1, SA1, SF2, SD2. Configura campos de controle diferencial (timestamp) por tabela. Alinhar com time D2 quais campos são necessários.',
+          ac:'10 tabelas registradas; campos de controle configurados; validação em homologação.' },
+        { id:'D2.1', jira:'DVARPR-314', epic:'D2', color:'dados',
+          title:'Carregar Dados de Simulação na Refinaria',
+          resp:[{l:'Alexandre',c:'resp-dados'}],
+          badges:[{l:'⚡ Sem dependência',c:'badge-paralelo'}],
+          dep:[],
+          detail:'Gera e carrega dados sintéticos para as 10 tabelas na Refinaria. Permite iniciar D2.2 e D2.3 sem aguardar D1. Volume: 12 meses, 3 lojas, 20 vendedores/loja. Scripts versionados no repositório.',
+          ac:'Dataset com estrutura idêntica às 10 tabelas; volume validado; scripts no repositório.' },
+      ]},
+      { label: '🟢 Trilha ERP — Nilson + Fábio', cards: [
+        { id:'E1.1', jira:'DVARPR-278', epic:'E1', color:'multi',
+          title:'Definir estrutura de tabela para armazenamento de rankings',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Nilson',c:'resp-erp'}],
+          badges:[{l:'⚡ Paralelo',c:'badge-paralelo'}],
+          dep:['Reunião Igor/Newton'],
+          detail:'Define e aprova com Engenharia Protheus (Igor/Newton) o modelo de tabela ZSR para armazenar rankings semanal/mensal/trimestral. Campos: vendedor, loja, período, faturamento, ticket médio, margem, desconto, score, timestamp.',
+          ac:'Modelo aprovado formalmente pela engenharia; documentado no doc de arquitetura.' },
+        { id:'E1.2', jira:'DVARPR-279', epic:'E1', color:'multi',
+          title:'Definir estrutura de armazenamento de insights da IA',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Alexandre',c:'resp-dados'}],
+          badges:[{l:'⚡ Paralelo',c:'badge-paralelo'}],
+          dep:['E1.1'],
+          detail:'Define modelo da tabela ZSI para armazenar insights retornados pelo LYNN. Campos: texto, categoria, prioridade, sentimento, timestamp de geração, período de referência. Suporta 3 visões.',
+          ac:'Modelo ZSI documentado; compatível com formato JSON de resposta do LYNN.' },
+      ]},
+      { label: '🟠 Trilha Produto — Fábio', cards: [
+        { id:'E5.1', jira:'DVARPR-303', epic:'E5', color:'po',
+          title:'Definir Segmentos de Mercado e Modelo de Faturamento do MVP',
+          resp:[{l:'Fábio',c:'resp-po'}],
+          badges:[{l:'🔴 DECISÃO CRÍTICA',c:'badge-decisao'},{l:'Desbloqueia D2+D3',c:'badge-urgente'}],
+          dep:['Decisão executiva'],
+          detail:'Decisão formal dos 3 segmentos de varejo MVP (candidatos: Moda, Calçados, Eletroeletrônicos) e modelo de faturamento/ticketing. Impacta D2 (calibrar pipelines) e D3 (configurar sub-agentes). Deve ser concluída no Sprint 2.',
+          ac:'3 segmentos documentados e aprovados; modelo de faturamento definido; comunicação formal às equipes.' },
+        { id:'E4.1', jira:'DVARPR-299', epic:'E4', color:'ux',
+          title:'Protótipo de UX/UI da Tela de Performance',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Moisés',c:'resp-ux'}],
+          badges:[{l:'⚡ Sem dependência',c:'badge-paralelo'},{l:'Gate E4.2',c:'badge-gate'}],
+          dep:[],
+          detail:'Cria wireframe navegável (Figma) com: header (loja+período), ranking verde/vermelho, cards de insights LYNN, filtro de período. Aprovação formal por Moisés Dias do Amaral. Máx. 2 rodadas de revisão.',
+          ac:'Protótipo aprovado por Moisés; link Figma e aprovação registrada; todas as seções cobertas.' },
+      ]},
+    ]
+  },
+  {
+    id: 's3', name: 'Retaguarda Sprint 3 - 26', date: '09 Jun → 27 Jun 2026',
+    parallelNote: '⚡ Dados: finaliza D1 + inicia ETL | ERP: modelo de dados local',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D1.3', jira:'DVARPR-308', epic:'D1', color:'dados',
+          title:'Ativar Sincronização Diferencial Upstream',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.2'],
+          detail:'Ativa o mecanismo de sincronização diferencial SmartLink para as 10 tabelas. Primeira execução = carga completa (full load) para popular histórico. Subsequentes = apenas registros novos/alterados.',
+          ac:'Sincronização ativa; full load executada; dados visíveis no Carol.' },
+        { id:'D1.4', jira:'DVARPR-311', epic:'D1', color:'dados',
+          title:'Validar Qualidade e Completude dos Dados no Carol',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.3'],
+          detail:'Valida que as 10 tabelas estão sincronizando corretamente: completude dos dados, frequência de atualização e alertas de falha ativos.',
+          ac:'Dados das 10 tabelas visíveis no Carol; alertas de falha configurados.' },
+        { id:'D1.5', jira:'DVARPR-312', epic:'D1', color:'dados',
+          title:'Documentar Procedimento de Configuração SmartLink',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.4'],
+          detail:'Documenta todo o procedimento de configuração do Carol e SmartLink para replicação em outros clientes. Inclui passo a passo de tenant, credenciais, registro de tabelas e ativação.',
+          ac:'Procedimento documentado e revisado; D1 encerrado.' },
+        { id:'D2.2', jira:'DVARPR-315', epic:'D2', color:'dados',
+          title:'Construir Pipeline ETL Carol → Refinaria',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Inicia c/ simulação',c:'badge-paralelo'}], dep:['D2.1'],
+          detail:'ETL incremental das 10 tabelas: limpeza, normalização, joins, carga na Refinaria. Idempotente. Log com contagens: processados/quarentenados/rejeitados. Inicia com dados de simulação (D2.1).',
+          ac:'Pipeline incremental funcionando; idempotente validado; logs com contagens corretas.' },
+      ]},
+      { label: '🟢 Trilha ERP — Nilson + Fábio', cards: [
+        { id:'E1.3', jira:'DVARPR-280', epic:'E1', color:'erp',
+          title:'Criação do usuário de agente de IA no Protheus para auditoria',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E5.1'],
+          detail:'Cria o usuário AGENTUSER/PROTHEIUSIA no Protheus com perfil de acesso mínimo. Toda operação automatizada é identificada com este usuário para rastreabilidade e auditoria completa.',
+          ac:'AgentUser criado com perfil restrito; identificável nos logs de auditoria.' },
+        { id:'E5.2', jira:'DVARPR-304', epic:'E5', color:'erp',
+          title:'Criar AgentUser e Configurar Parâmetros do Agente no Protheus',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E1.3','E5.1'],
+          detail:'Configura grupo Starship no Configurador Protheus: endpoint LYNN (criptografado), token, segmento de mercado, frequência do ciclo background, limites de score para verde/vermelho.',
+          ac:'Parâmetros configurados; endpoint criptografado; lidos corretamente pelo processo E2.' },
+        { id:'E1.4', jira:'DVARPR-281', epic:'E1', color:'multi',
+          title:'Documentação do modelo de dados local no documento de arquitetura',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Felippe',c:'resp-arq'}], badges:[], dep:['E1.1','E1.2'],
+          detail:'Atualiza o documento de arquitetura com o modelo de dados local completo: tabelas ZSR e ZSI, campos, relacionamentos, índices e padrão corporativo. Revisado por PO e Arquitetura.',
+          ac:'Doc arquitetura atualizado; modelo aprovado por PO + Arquitetura; E1 encerrado.' },
+      ]},
+    ]
+  },
+  {
+    id: 's4', name: 'Retaguarda Sprint 4 - 26', date: '30 Jun → 18 Jul 2026',
+    parallelNote: '⚡ Dados: ranking pipelines + MCP Tools | ERP: processo background',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D2.3', jira:'DVARPR-316', epic:'D2', color:'dados',
+          title:'Construir Pipeline de Ranking (3 Views)',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D2.2'],
+          detail:'Calcula 3 scores por vendedor/loja/período: score_vendas, score_conversao, score_atendimento. Normalizado 0-100 por loja. 3 janelas: semanal, mensal, trimestral.',
+          ac:'3 views calculadas e disponíveis; scores 0-100; resultados validados com amostra conhecida.' },
+        { id:'D2.4', jira:'DVARPR-317', epic:'D2', color:'dados',
+          title:'Construir Pipeline de Enriquecimento ML',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D2.3'],
+          detail:'Aplica modelos de ML sobre os scores de ranking para enriquecimento histórico. Gera scores enriquecidos com contexto temporal e sazonalidade. Alimenta a base de contexto do LYNN.',
+          ac:'Pipeline ML gerando scores enriquecidos; disponíveis para D3 (MCP Tools).' },
+        { id:'D3.1', jira:'DVARPR-319', epic:'D3', color:'dados',
+          title:'Desenvolver e Expor MCP Tools da Refinaria',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Gate para E3',c:'badge-gate'}], dep:['D2.3'],
+          detail:'3 endpoints MCP: get_ranking (ranking atual em TOON), get_history (histórico de insights), get_segment_context (contexto do segmento). Autenticação por token. Schema documentado. Resposta <5s.',
+          ac:'3 MCP Tools respondendo em TOON; auth funcionando; schema documentado; <5s validado.' },
+      ]},
+      { label: '🟢 Trilha ERP — Nilson', cards: [
+        { id:'E2.1', jira:'DVARPR-283', epic:'E2', color:'erp',
+          title:'Geração automática do ranking semanal em processo background',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E1 completo','E5.1'],
+          detail:'Processo background calcula ranking semanal (D-7) das tabelas transacionais (SD1, SF2, SL1). Grava na ZSR substituindo versão anterior. Verifica AgentUser antes de executar. Scheduler: segunda-feira 01:00.',
+          ac:'Processo executa automaticamente; dados gravados na ZSR; log com AgentUser; sem degradar ERP.' },
+        { id:'E2.2', jira:'DVARPR-284', epic:'E2', color:'erp',
+          title:'Extensão do processo background para rankings mensal e trimestral',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E2.1'],
+          detail:'Estende o processo background de E2.1 para calcular as visões mensal (D-30) e trimestral (D-90) na mesma execução. As 3 visões são independentes na ZSR.',
+          ac:'3 visões calculadas na mesma execução; independentes na ZSR; log registra cada visão.' },
+        { id:'E2.3', jira:'DVARPR-285', epic:'E2', color:'erp',
+          title:'Parametrização da periodicidade via configuração do Protheus',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E2.1'],
+          detail:'Periodicidade de execução configurável via parâmetro no Configurador Protheus, sem alterar código. Alinhamento com Fernando Munhoz sobre método de disparo (Job Scheduler vs trigger).',
+          ac:'Periodicidade configurável via parâmetro; mudança sem deploy; confirmado com Fernando Munhoz.' },
+      ]},
+    ]
+  },
+  {
+    id: 's5', name: 'Retaguarda Sprint 5 - 26', date: '21 Jul → 08 Ago 2026',
+    parallelNote: '⚡ Dados: valida MCP + configura LYNN | ERP: fecha E2, inicia E3 e E4',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D3.2', jira:'DVARPR-320', epic:'D3', color:'dados',
+          title:'Testar MCP Tools com Agente POC',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Gate D3.3',c:'badge-gate'}], dep:['D3.1'],
+          detail:'Valida os 3 MCP Tools com agente POC (script Python). Cenários: resposta válida, dados vazios, erro. Mede tempo de resposta real. Relatório de testes obrigatório antes de D3.3.',
+          ac:'3 tools validados; cenários de erro sem crash; relatório documentado.' },
+        { id:'D3.3', jira:'DVARPR-321', epic:'D3', color:'dados',
+          title:'Configurar Prompt do LYNN para Varejo Protheus',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D3.2'],
+          detail:'Elabora prompt v1 do LYNN: papel (especialista em performance de piso), contexto Protheus, instruções de uso dos MCP Tools, formato JSON (insights[], generatedAt, agentVersion, confidence). Versionado.',
+          ac:'Prompt v1 configurado; respostas em JSON válido; qualidade avaliada manualmente.' },
+        { id:'D3.4', jira:'DVARPR-322', epic:'D3', color:'dados',
+          title:'Configurar Sub-Agentes por Segmento de Mercado',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D3.3','E5.1'],
+          detail:'Configura sub-agentes específicos para cada um dos 3 segmentos definidos em E5.1. Cada sub-agente tem contexto e vocabulário calibrado para o segmento, aumentando a relevância dos insights.',
+          ac:'3 sub-agentes configurados e gerando insights relevantes por segmento.' },
+      ]},
+      { label: '🟢 Trilha ERP — Nilson', cards: [
+        { id:'E2.4', jira:'DVARPR-286', epic:'E2', color:'erp',
+          title:'Associação das execuções ao AgentUser para rastreabilidade',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E2.1'],
+          detail:'Implementa log completo: início, fim, volume de registros por visão, erros. Log associado ao AgentUser em todos os registros. Testes de carga confirmam não degradação do ERP em horário de pico.',
+          ac:'Log completo em toda execução; AgentUser identificado; testes de carga aprovados.' },
+        { id:'E3.1', jira:'DVARPR-291', epic:'E3', color:'erp',
+          title:'Estruturar Payload TOON para Envio ao LYNN',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E1 completo','E2.3'],
+          detail:'Serializa dados do ERP no formato TOON. Payload com 4 seções: erpData (ranking ZSR), iaPreviousInsights (ZSI), erpParameters (loja, período, segmento), agentUser. Determinístico e <500ms.',
+          ac:'Payload TOON válido com 4 seções; serialização <500ms; dados sensíveis não logados em claro.' },
+        { id:'E4.2', jira:null, epic:'E4', color:'erp',
+          title:'Implementar Tela de Ranking com Codificação por Cor',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E4.1 aprovada','E1','E2'],
+          detail:'Implementa seção de ranking na tela de Performance de Piso. Carrega dados da ZSR localmente. Ranking por score decrescente. Cor verde (score ≥ limite) / vermelho (score < limite). Exibe variação vs período. <2s.',
+          ac:'Ranking exibido; cores corretas; <2s em homologação; variação vs período anterior visível.' },
+      ]},
+    ]
+  },
+  {
+    id: 's6', name: 'Retaguarda Sprint 6 - 26', date: '11 Ago → 29 Ago 2026',
+    parallelNote: '⚡ Dados: LLM-as-a-Judge | ERP: integração REST completa com LYNN',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D3.5', jira:'DVARPR-323', epic:'D3', color:'dados',
+          title:'Implementar Ciclo LLM-as-a-Judge',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D3.3'],
+          detail:'Segundo LLM avalia qualidade dos insights do LYNN (relevância, acionabilidade, precisão). Ciclo de iteração documentado. Mínimo 2 ciclos de avaliação + ajuste de prompt antes do go-live.',
+          ac:'LLM-as-a-Judge implementado; ≥2 ciclos executados e documentados.' },
+      ]},
+      { label: '🟢 Trilha ERP — Nilson', cards: [
+        { id:'E3.2', jira:'DVARPR-292', epic:'E3', color:'erp',
+          title:'Implementar Chamada REST ao Endpoint LYNN',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E3.1','D3.1 MCP'],
+          detail:'POST HTTPS ao endpoint LYNN com payload TOON. Autenticação por token criptografado. Timeout: 30s configurável. Retry: 1 tentativa após 5 min em falha 5xx. Log de cada chamada: timestamp, status HTTP, duração. Assíncrono.',
+          ac:'Chamada POST ao LYNN; timeout respeitado; log com status; não trava interface do usuário.' },
+        { id:'E3.3', jira:'DVARPR-293', epic:'E3', color:'erp',
+          title:'Receber e Persistir Insights do LYNN',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E3.2'],
+          detail:'Recebe JSON do LYNN e persiste na ZSI local. Campos: texto, categoria (Performance/Risco/Oportunidade), prioridade, confiança, timestamp. Valida estrutura antes de gravar. Máx. 10 insights ativos por período.',
+          ac:'Insights gravados na ZSI com todos os campos; JSON inválido tratado sem crash.' },
+        { id:'E3.4', jira:'DVARPR-294', epic:'E3', color:'erp',
+          title:'Tratamento de Erros e Retry da Integração LYNN',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E3.2'],
+          detail:'Implementa tratamento: INSUFFICIENT_DATA (ranking vazio), MISSING_CONTEXT, timeout, falha de rede. Retry policy configurável. Nenhum crash sem mensagem tratada ao usuário.',
+          ac:'Todos os cenários de erro tratados; retry funcionando; sem crash para o usuário.' },
+        { id:'E3.5', jira:'DVARPR-297', epic:'E3', color:'erp',
+          title:'Log de Auditoria das Chamadas ao LYNN',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E3.2'],
+          detail:'Cada chamada ao LYNN registrada no log ZSL com: timestamp, status HTTP, duração, tamanho do payload, AgentUser. Rastreabilidade completa de cada interação. Dados sensíveis não logados em texto claro.',
+          ac:'Log ZSL completo em toda chamada; AgentUser identificado; auditoria completa.' },
+      ]},
+    ]
+  },
+  {
+    id: 's7', name: 'Retaguarda Sprint 7 - 26', date: '01 Set → 19 Set 2026',
+    parallelNote: '🏁 Fechamento MVP: tela completa + iteração final + homologação',
+    sections: [
+      { label: '🟢 Trilha ERP — Nilson', cards: [
+        { id:'E4.3', jira:null, epic:'E4', color:'erp',
+          title:'Exibir Insights do LYNN na Tela de Performance',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E4.2','E3.3'],
+          detail:'Exibe os insights da ZSI na tela: texto, categoria, prioridade (alta>média>baixa). Máx. 10 insights ativos. Estado vazio: "Insights sendo processados — próxima atualização em [horário]". Leitura local, sem chamada ao LYNN.',
+          ac:'Insights exibidos ordenados por prioridade; estado vazio com mensagem; leitura local apenas.' },
+        { id:'E4.4', jira:null, epic:'E4', color:'erp',
+          title:'Filtro por Período e Filial na Tela',
+          resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E4.2'],
+          detail:'Adiciona filtro de período (semanal/mensal/trimestral) e filial. Carregamento da ZSR para o período selecionado. Default: semanal. Mudança de filtro recarrega ranking sem nova chamada ao LYNN.',
+          ac:'Filtros funcionando; troca de período recarrega <2s; padrão semanal na abertura.' },
+      ]},
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D3.6', jira:'DVARPR-324', epic:'D3', color:'dados',
+          title:'Iteração de Prompt e MCP Tools Baseada no Judge',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D3.5'],
+          detail:'Ciclo final de avaliação LLM-as-a-Judge com dados reais do cliente piloto. Ajustes de prompt e sub-agentes. Documentação do ciclo de qualidade para manutenção pós-go-live.',
+          ac:'≥2 ciclos com dados reais; prompt final aprovado; ciclo documentado.' },
+      ]},
+      { label: '🧪 Homologação & Go-live — Time', cards: [
+        { id:'QA.1', jira:null, epic:null, color:'multi',
+          title:'Testes de Integração End-to-End',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Alexandre',c:'resp-dados'},{l:'Nilson',c:'resp-erp'}],
+          badges:[], dep:['E3 completo','E4 completo'],
+          detail:'Valida o fluxo completo: background ERP → ranking ZSR → chamada LYNN → insights ZSI → exibição na tela. Testa com dados reais. Valida tempo <2s. Verifica logs e auditoria end-to-end.',
+          ac:'Fluxo completo validado com dados reais; <2s; logs e auditoria corretos.' },
+        { id:'QA.2', jira:null, epic:null, color:'po',
+          title:'Homologação e Liberação MVP',
+          resp:[{l:'Fábio',c:'resp-po'}],
+          badges:[{l:'🏁 Go-live 15/Set',c:'badge-urgente'}], dep:['QA.1'],
+          detail:'Validação final com usuário gestor de loja (empresa piloto). Critérios macro: ranking verde/vermelho, insights LYNN, filtros, <2s, UX aprovada por Moisés. Liberação formal para go-live.',
+          ac:'Todos os critérios macro aprovados; UX validada por Moisés; go-live autorizado.' },
+      ]},
+    ]
+  },
+];
+
+// ── Build epic legend ──────────────────────────────────────────
+const legendEl = document.getElementById('epicLegend');
+Object.entries(EPICS).forEach(([key, ep]) => {
+  const item = document.createElement('div');
+  item.className = 'epic-legend-item';
+  item.innerHTML = `
+    <div class="epic-legend-bar" style="background:${ep.color}"></div>
+    <span class="epic-legend-code">${ep.code}</span>
+    <span class="epic-legend-name">${ep.label} · ${ep.name}</span>`;
+  legendEl.appendChild(item);
+});
+
+// ── Build board ────────────────────────────────────────────────
+const board = document.getElementById('board');
+const cardMap = {};
+
+sprints.forEach(sprint => {
+  const col = document.createElement('div');
+  col.className = `sprint-col ${sprint.id}`;
+
+  let sectionsHtml = '';
+  sprint.sections.forEach(sec => {
+    const cardsHtml = sec.cards.map(card => {
+      if (card.id) cardMap[card.id] = card;
+
+      const epicObj = card.epic ? EPICS[card.epic] : null;
+      const epicColor = epicObj ? epicObj.color : '#cbd5e1';
+      const epicLabel = epicObj ? epicObj.label : '';
+
+      const badges = card.badges.map(b => `<span class="badge ${b.c}">${b.l}</span>`).join('');
+      const respChips = card.resp.map(r => `<span class="resp-chip ${r.c}">${r.l}</span>`).join('');
+      const deps = card.dep.length ? `<div class="card-dep">${card.dep.map(d=>`<span class="dep-tag">${d}</span>`).join('')}</div>` : '';
+      const jiraLine = card.jira ? `<div class="card-jira">${card.jira}</div>` : '';
+      const epicPill = epicLabel ? `<span class="epic-pill" style="background:${epicColor}">${epicLabel}</span>` : '';
+
+      return `<div class="card ${card.color}" onclick="openModal('${card.id}')">
+        <div class="card-epic-bar" style="background:${epicColor}"></div>
+        <div class="card-inner">
+          <div class="card-top">
+            <span class="card-id">${card.id}</span>
+            <div class="badges">${badges}</div>
+          </div>
+          <div class="card-title-block">
+            ${jiraLine}
+            <div class="card-title">${card.title}</div>
+          </div>
+          <div class="card-bottom">
+            <div class="card-resp">${respChips}</div>
+            ${epicPill}
+          </div>
+          ${deps}
+        </div>
+      </div>`;
+    }).join('');
+    sectionsHtml += `<div class="section-divider">${sec.label}</div>${cardsHtml}`;
+  });
+
+  col.innerHTML = `
+    <div class="sprint-header">${sprint.name}<div class="sprint-date">${sprint.date}</div></div>
+    <div class="sprint-body">
+      ${sprint.parallelNote ? `<div class="parallel-note">${sprint.parallelNote}</div>` : ''}
+      ${sectionsHtml}
+    </div>`;
+  board.appendChild(col);
+});
+
+// ── Modal ──────────────────────────────────────────────────────
+function openModal(id) {
+  const card = cardMap[id];
+  if (!card) return;
+  const epicObj = card.epic ? EPICS[card.epic] : null;
+  const epicColor = epicObj ? epicObj.color : '#cbd5e1';
+
+  document.getElementById('modalJira').textContent = card.jira || '(código Jira pendente)';
+  document.getElementById('modalTitle').textContent = card.title;
+
+  const respStr = card.resp.map(r => r.l).join(', ');
+  const depStr = card.dep.length ? card.dep.join(', ') : 'Nenhuma';
+  const epicHtml = epicObj
+    ? `<span class="modal-epic-tag" style="background:${epicColor}">${epicObj.label} · ${epicObj.code} · ${epicObj.name}</span>`
+    : '';
+
+  document.getElementById('modalBody').innerHTML = `
+    ${epicHtml}
+    <div class="modal-section"><div class="modal-label">Responsável</div><div class="modal-value">${respStr}</div></div>
+    <div class="modal-section"><div class="modal-label">Dependências</div><div class="modal-value">${depStr}</div></div>
+    <div class="modal-section"><div class="modal-label">Contexto & Escopo</div><div class="modal-value">${card.detail}</div></div>
+    <div class="modal-section"><div class="modal-label">Critérios de Aceite</div><div class="modal-value">${card.ac}</div></div>`;
+
+  document.getElementById('modal').classList.add('open');
+}
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal'))
+    document.getElementById('modal').classList.remove('open');
+}
+</script>
+</body>
+</html>
