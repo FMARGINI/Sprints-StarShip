@@ -167,7 +167,7 @@ const EPICS = {
 
 const sprints = [
   {
-    id: 's2', name: 'Retaguarda Sprint 2 - 26', date: '21 Mai → 06 Jun 2026',
+    id: 's2', name: 'Retaguarda Sprint 2 - 26', date: '21 Mai → 11 Jun 2026', status: 'Em Andamento',
     parallelNote: '⚡ 4 frentes simultâneas — máximo paralelismo',
     sections: [
       { label: '🔵 Trilha Dados — Alexandre', cards: [
@@ -486,7 +486,7 @@ sprints.forEach(sprint => {
   });
 
   col.innerHTML = `
-    <div class="sprint-header">${sprint.name}<div class="sprint-date">${sprint.date}</div></div>
+    <div class="sprint-header">${sprint.name}<div class="sprint-date">${sprint.date}</div>${sprint.status ? `<div style="font-size:10px;margin-top:3px;background:rgba(255,255,255,0.2);border-radius:4px;padding:1px 6px;display:inline-block;">🟢 ${sprint.status}</div>` : ''}</div>
     <div class="sprint-body">
       ${sprint.parallelNote ? `<div class="parallel-note">${sprint.parallelNote}</div>` : ''}
       ${sectionsHtml}
