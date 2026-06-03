@@ -460,7 +460,7 @@ sprints.forEach(sprint => {
       const badges = card.badges.map(b => `<span class="badge ${b.c}">${b.l}</span>`).join('');
       const respChips = card.resp.map(r => `<span class="resp-chip ${r.c}">${r.l}</span>`).join('');
       const deps = card.dep.length ? `<div class="card-dep">${card.dep.map(d=>`<span class="dep-tag">${d}</span>`).join('')}</div>` : '';
-      const jiraLine = card.jira ? `<div class="card-jira">${card.jira}</div>` : '';
+      const jiraLine = card.jira ? `<div class="card-jira"><a href="https://jiraproducao.totvs.com.br/browse/${card.jira}" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${card.jira}</a></div>` : '';
       const epicPill = epicLabel ? `<span class="epic-pill" style="background:${epicColor}">${epicLabel}</span>` : '';
 
       return `<div class="card ${card.color}" onclick="openModal('${card.id}')">
@@ -501,7 +501,12 @@ function openModal(id) {
   const epicObj = card.epic ? EPICS[card.epic] : null;
   const epicColor = epicObj ? epicObj.color : '#cbd5e1';
 
-  document.getElementById('modalJira').textContent = card.jira || '(código Jira pendente)';
+  const modalJiraEl = document.getElementById('modalJira');
+  if (card.jira) {
+    modalJiraEl.innerHTML = `<a href="https://jiraproducao.totvs.com.br/browse/${card.jira}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline;">${card.jira}</a>`;
+  } else {
+    modalJiraEl.textContent = '(código Jira pendente)';
+  }
   document.getElementById('modalTitle').textContent = card.title;
 
   const respStr = card.resp.map(r => r.l).join(', ');
