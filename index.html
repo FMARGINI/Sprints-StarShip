@@ -167,25 +167,25 @@ const EPICS = {
 
 const sprints = [
   {
-    id: 's2', name: 'Retaguarda Sprint 2 - 26', date: '21 Mai → 11 Jun 2026', status: 'Em Andamento',
+    id: 's2', name: 'Retaguarda Sprint 2 - 26', date: '21 Mai → 11 Jun 2026', status: 'Finalizado',
     parallelNote: '⚡ 4 frentes simultâneas — máximo paralelismo',
     sections: [
       { label: '🔵 Trilha Dados — Alexandre', cards: [
-        { id:'D1.1', jira:'DVARPR-306', epic:'D1', color:'dados',
+        { id:'D1.1', jira:'DVARPR-306', epic:'D1', color:'dados', status:'Finalizado',
           title:'Configurar Tenant e Credenciais no Carol',
           resp:[{l:'Alexandre',c:'resp-dados'}],
           badges:[{l:'🔴 URGENTE ≤29/Mai',c:'badge-urgente'},{l:'⚡ Paralelo',c:'badge-paralelo'}],
           dep:[],
           detail:'Configura o tenant Carol e credenciais SmartLink para o projeto Starship. Inclui provisionar tenant isolado, definir roles (CiDados: read/write, PO: read), gerar credenciais de serviço armazenadas em cofre. Primeiro bloqueio do caminho crítico — iniciar semana 1.',
           ac:'Tenant acessível pelo time; credenciais seguras; acesso validado por todos os membros.' },
-        { id:'D1.2', jira:'DVARPR-307', epic:'D1', color:'dados',
+        { id:'D1.2', jira:'DVARPR-307', epic:'D1', color:'dados', status:'Finalizado',
           title:'Registrar as 10 Tabelas no App SmartLink',
           resp:[{l:'Alexandre',c:'resp-dados'}],
           badges:[{l:'⚡ Seq. D1.1',c:'badge-paralelo'}],
           dep:['D1.1'],
           detail:'Registra as 10 tabelas no App SmartLink: SL1, SL2, SL4, SF1, SD1, SA3, SB1, SA1, SF2, SD2. Configura campos de controle diferencial (timestamp) por tabela. Alinhar com time D2 quais campos são necessários.',
           ac:'10 tabelas registradas; campos de controle configurados; validação em homologação.' },
-        { id:'D2.1', jira:'DVARPR-314', epic:'D2', color:'dados',
+        { id:'D2.1', jira:'DVARPR-314', epic:'D2', color:'dados', status:'Finalizado',
           title:'Carregar Dados de Simulação na Refinaria',
           resp:[{l:'Alexandre',c:'resp-dados'}],
           badges:[{l:'⚡ Sem dependência',c:'badge-paralelo'}],
@@ -194,20 +194,53 @@ const sprints = [
           ac:'Dataset com estrutura idêntica às 10 tabelas; volume validado; scripts no repositório.' },
       ]},
       { label: '🟢 Trilha ERP — Nilson + Fábio', cards: [
-        { id:'E1.1', jira:'DVARPR-278', epic:'E1', color:'multi',
+        { id:'E1.1', jira:'DVARPR-278', epic:'E1', color:'multi', status:'Finalizado',
           title:'Definir estrutura de tabela para armazenamento de rankings',
           resp:[{l:'Fábio',c:'resp-po'},{l:'Nilson',c:'resp-erp'}],
           badges:[{l:'⚡ Paralelo',c:'badge-paralelo'}],
           dep:['Reunião Igor/Newton'],
           detail:'Define e aprova com Engenharia Protheus (Igor/Newton) o modelo de tabela ZSR para armazenar rankings semanal/mensal/trimestral. Campos: vendedor, loja, período, faturamento, ticket médio, margem, desconto, score, timestamp.',
           ac:'Modelo aprovado formalmente pela engenharia; documentado no doc de arquitetura.' },
-        { id:'E1.2', jira:'DVARPR-279', epic:'E1', color:'multi',
+        { id:'E1.2', jira:'DVARPR-279', epic:'E1', color:'multi', status:'Finalizado',
           title:'Definir estrutura de armazenamento de insights da IA',
           resp:[{l:'Fábio',c:'resp-po'},{l:'Alexandre',c:'resp-dados'}],
           badges:[{l:'⚡ Paralelo',c:'badge-paralelo'}],
           dep:['E1.1'],
           detail:'Define modelo da tabela ZSI para armazenar insights retornados pelo LYNN. Campos: texto, categoria, prioridade, sentimento, timestamp de geração, período de referência. Suporta 3 visões.',
           ac:'Modelo ZSI documentado; compatível com formato JSON de resposta do LYNN.' },
+      ]},
+    ]
+  },
+  {
+    id: 's3', name: 'Retaguarda Sprint 3 - 26', date: '15 Jun → 13 Jul 2026', status: 'Em Andamento',
+    parallelNote: '⚡ Dados: finaliza D1 + inicia ETL | ERP: modelo de dados local',
+    sections: [
+      { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D1.3', jira:'DVARPR-308', epic:'D1', color:'dados',
+          title:'Ativar Sincronização Diferencial Upstream',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.2'],
+          detail:'Ativa o mecanismo de sincronização diferencial SmartLink para as 10 tabelas. Primeira execução = carga completa (full load) para popular histórico. Subsequentes = apenas registros novos/alterados.',
+          ac:'Sincronização ativa; full load executada; dados visíveis no Carol.' },
+        { id:'D1.4', jira:'DVARPR-311', epic:'D1', color:'dados',
+          title:'Validar Qualidade e Completude dos Dados na Refinaria - Fase 1',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.3'],
+          detail:'Valida que as 10 tabelas estão sincronizando corretamente: completude dos dados, frequência de atualização e alertas de falha ativos.',
+          ac:'Dados das 10 tabelas visíveis no Carol; alertas de falha configurados.' },
+        { id:'D1.4b', jira:'DVARPR-685', epic:'D1', color:'dados',
+          title:'Validar Qualidade e Completude dos Dados na Refinaria - Fase 2',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.3'],
+          detail:'Valida que as 10 tabelas estão sincronizando corretamente: completude dos dados, frequência de atualização e alertas de falha ativos.',
+          ac:'Dados das 10 tabelas visíveis no Carol; alertas de falha configurados.' },
+        { id:'D3.1', jira:'DVARPR-319', epic:'D3', color:'dados',
+          title:'Desenvolver e Expor MCP Tools da Refinaria',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Gate para E3',c:'badge-gate'}], dep:['D2.3'],
+          detail:'3 endpoints MCP: get_ranking (ranking atual em TOON), get_history (histórico de insights), get_segment_context (contexto do segmento). Autenticação por token. Schema documentado. Resposta <5s.',
+          ac:'3 MCP Tools respondendo em TOON; auth funcionando; schema documentado; <5s validado.' },
+        { id:'D1.5', jira:'DVARPR-312', epic:'D1', color:'dados',
+          title:'Documentar Procedimento de Configuração SmartLink',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.4'],
+          detail:'Documenta todo o procedimento de configuração do Carol e SmartLink para replicação em outros clientes. Inclui passo a passo de tenant, credenciais, registro de tabelas e ativação.',
+          ac:'Procedimento documentado e revisado; D1 encerrado.' },
       ]},
       { label: '🟠 Trilha Produto — Fábio', cards: [
         { id:'E5.1', jira:'DVARPR-303', epic:'E5', color:'po',
@@ -225,53 +258,30 @@ const sprints = [
           detail:'Cria wireframe navegável (Figma) com: header (loja+período), ranking verde/vermelho, cards de insights LYNN, filtro de período. Aprovação formal por Moisés Dias do Amaral. Máx. 2 rodadas de revisão.',
           ac:'Protótipo aprovado por Moisés; link Figma e aprovação registrada; todas as seções cobertas.' },
       ]},
-    ]
-  },
-  {
-    id: 's3', name: 'Retaguarda Sprint 3 - 26', date: '09 Jun → 27 Jun 2026',
-    parallelNote: '⚡ Dados: finaliza D1 + inicia ETL | ERP: modelo de dados local',
-    sections: [
-      { label: '🔵 Trilha Dados — Alexandre', cards: [
-        { id:'D1.3', jira:'DVARPR-308', epic:'D1', color:'dados',
-          title:'Ativar Sincronização Diferencial Upstream',
-          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.2'],
-          detail:'Ativa o mecanismo de sincronização diferencial SmartLink para as 10 tabelas. Primeira execução = carga completa (full load) para popular histórico. Subsequentes = apenas registros novos/alterados.',
-          ac:'Sincronização ativa; full load executada; dados visíveis no Carol.' },
-        { id:'D1.4', jira:'DVARPR-311', epic:'D1', color:'dados',
-          title:'Validar Qualidade e Completude dos Dados no Carol',
-          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.3'],
-          detail:'Valida que as 10 tabelas estão sincronizando corretamente: completude dos dados, frequência de atualização e alertas de falha ativos.',
-          ac:'Dados das 10 tabelas visíveis no Carol; alertas de falha configurados.' },
-        { id:'D1.5', jira:'DVARPR-312', epic:'D1', color:'dados',
-          title:'Documentar Procedimento de Configuração SmartLink',
-          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.4'],
-          detail:'Documenta todo o procedimento de configuração do Carol e SmartLink para replicação em outros clientes. Inclui passo a passo de tenant, credenciais, registro de tabelas e ativação.',
-          ac:'Procedimento documentado e revisado; D1 encerrado.' },
-        { id:'D2.2', jira:'DVARPR-315', epic:'D2', color:'dados',
-          title:'Construir Pipeline ETL Carol → Refinaria',
-          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Inicia c/ simulação',c:'badge-paralelo'}], dep:['D2.1'],
-          detail:'ETL incremental das 10 tabelas: limpeza, normalização, joins, carga na Refinaria. Idempotente. Log com contagens: processados/quarentenados/rejeitados. Inicia com dados de simulação (D2.1).',
-          ac:'Pipeline incremental funcionando; idempotente validado; logs com contagens corretas.' },
-      ]},
       { label: '🟢 Trilha ERP — Nilson + Fábio', cards: [
         { id:'E1.3', jira:'DVARPR-280', epic:'E1', color:'erp',
           title:'Criação do usuário de agente de IA no Protheus para auditoria',
           resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E5.1'],
           detail:'Cria o usuário AGENTUSER/PROTHEIUSIA no Protheus com perfil de acesso mínimo. Toda operação automatizada é identificada com este usuário para rastreabilidade e auditoria completa.',
           ac:'AgentUser criado com perfil restrito; identificável nos logs de auditoria.' },
-        { id:'E1.4', jira:'DVARPR-281', epic:'E1', color:'multi',
-          title:'Documentação do modelo de dados local no documento de arquitetura',
-          resp:[{l:'Fábio',c:'resp-po'},{l:'Felippe',c:'resp-arq'}], badges:[], dep:['E1.1','E1.2'],
-          detail:'Atualiza o documento de arquitetura com o modelo de dados local completo: tabelas ZSR e ZSI, campos, relacionamentos, índices e padrão corporativo. Revisado por PO e Arquitetura.',
-          ac:'Doc arquitetura atualizado; modelo aprovado por PO + Arquitetura; E1 encerrado.' },
       ]},
     ]
   },
   {
-    id: 's4', name: 'Retaguarda Sprint 4 - 26', date: '30 Jun → 18 Jul 2026',
+    id: 's4', name: 'Retaguarda Sprint 4 - 26', date: '13 Jul → 03 Ago 2026',
     parallelNote: '⚡ Dados: ranking pipelines + MCP Tools | ERP: processo background',
     sections: [
       { label: '🔵 Trilha Dados — Alexandre', cards: [
+        { id:'D1.4c', jira:'DVARPR-686', epic:'D1', color:'dados',
+          title:'Validar Qualidade e Completude dos Dados na Refinaria - Fase 2',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D1.3'],
+          detail:'Valida que as 10 tabelas estão sincronizando corretamente: completude dos dados, frequência de atualização e alertas de falha ativos.',
+          ac:'Dados das 10 tabelas visíveis no Carol; alertas de falha configurados.' },
+        { id:'D2.2', jira:'DVARPR-315', epic:'D2', color:'dados',
+          title:'Construir Pipeline ETL Carol → Refinaria',
+          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Inicia c/ simulação',c:'badge-paralelo'}], dep:['D2.1'],
+          detail:'ETL incremental das 10 tabelas: limpeza, normalização, joins, carga na Refinaria. Idempotente. Log com contagens: processados/quarentenados/rejeitados. Inicia com dados de simulação (D2.1).',
+          ac:'Pipeline incremental funcionando; idempotente validado; logs com contagens corretas.' },
         { id:'D2.3', jira:'DVARPR-316', epic:'D2', color:'dados',
           title:'Construir Pipeline de Ranking (3 Views)',
           resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D2.2'],
@@ -282,13 +292,13 @@ const sprints = [
           resp:[{l:'Alexandre',c:'resp-dados'}], badges:[], dep:['D2.3'],
           detail:'Aplica modelos de ML sobre os scores de ranking para enriquecimento histórico. Gera scores enriquecidos com contexto temporal e sazonalidade. Alimenta a base de contexto do LYNN.',
           ac:'Pipeline ML gerando scores enriquecidos; disponíveis para D3 (MCP Tools).' },
-        { id:'D3.1', jira:'DVARPR-319', epic:'D3', color:'dados',
-          title:'Desenvolver e Expor MCP Tools da Refinaria',
-          resp:[{l:'Alexandre',c:'resp-dados'}], badges:[{l:'Gate para E3',c:'badge-gate'}], dep:['D2.3'],
-          detail:'3 endpoints MCP: get_ranking (ranking atual em TOON), get_history (histórico de insights), get_segment_context (contexto do segmento). Autenticação por token. Schema documentado. Resposta <5s.',
-          ac:'3 MCP Tools respondendo em TOON; auth funcionando; schema documentado; <5s validado.' },
       ]},
       { label: '🟢 Trilha ERP — Nilson', cards: [
+        { id:'E1.4', jira:'DVARPR-281', epic:'E1', color:'multi',
+          title:'Documentação do modelo de dados local no documento de arquitetura',
+          resp:[{l:'Fábio',c:'resp-po'},{l:'Felippe',c:'resp-arq'}], badges:[], dep:['E1.1','E1.2'],
+          detail:'Atualiza o documento de arquitetura com o modelo de dados local completo: tabelas ZSR e ZSI, campos, relacionamentos, índices e padrão corporativo. Revisado por PO e Arquitetura.',
+          ac:'Doc arquitetura atualizado; modelo aprovado por PO + Arquitetura; E1 encerrado.' },
         { id:'E2.1', jira:'DVARPR-283', epic:'E2', color:'erp',
           title:'Geração automática do ranking semanal em processo background',
           resp:[{l:'Nilson',c:'resp-erp'}], badges:[], dep:['E1 completo','E5.1'],
@@ -308,7 +318,7 @@ const sprints = [
     ]
   },
   {
-    id: 's5', name: 'Retaguarda Sprint 5 - 26', date: '21 Jul → 08 Ago 2026',
+    id: 's5', name: 'Retaguarda Sprint 5 - 26', date: '04 Ago → 25 Ago 2026',
     parallelNote: '⚡ Dados: valida MCP + configura LYNN | ERP: fecha E2, inicia E3 e E4',
     sections: [
       { label: '🔵 Trilha Dados — Alexandre', cards: [
@@ -353,7 +363,7 @@ const sprints = [
     ]
   },
   {
-    id: 's6', name: 'Retaguarda Sprint 6 - 26', date: '11 Ago → 29 Ago 2026',
+    id: 's6', name: 'Retaguarda Sprint 6 - 26', date: '26 Ago → 16 Set 2026',
     parallelNote: '⚡ Dados: LLM-as-a-Judge | ERP: integração REST completa com LYNN',
     sections: [
       { label: '🔵 Trilha Dados — Alexandre', cards: [
@@ -388,7 +398,7 @@ const sprints = [
     ]
   },
   {
-    id: 's7', name: 'Retaguarda Sprint 7 - 26', date: '01 Set → 19 Set 2026',
+    id: 's7', name: 'Retaguarda Sprint 7 - 26', date: '16 Set → 07 Out 2026',
     parallelNote: '🏁 Fechamento MVP: tela completa + iteração final + homologação',
     sections: [
       { label: '🟢 Trilha ERP — Nilson', cards: [
@@ -470,6 +480,7 @@ sprints.forEach(sprint => {
             <span class="card-id">${card.id}</span>
             <div class="badges">${badges}</div>
           </div>
+          ${card.status ? `<div style="font-size:9px;font-weight:700;color:#b91c1c;background:#fee2e2;border-radius:3px;padding:1px 6px;display:inline-block;margin-bottom:4px;">✅ ${card.status}</div>` : ''}
           <div class="card-title-block">
             ${jiraLine}
             <div class="card-title">${card.title}</div>
@@ -486,7 +497,7 @@ sprints.forEach(sprint => {
   });
 
   col.innerHTML = `
-    <div class="sprint-header">${sprint.name}<div class="sprint-date">${sprint.date}</div>${sprint.status ? `<div style="font-size:10px;margin-top:3px;background:rgba(255,255,255,0.2);border-radius:4px;padding:1px 6px;display:inline-block;">🟢 ${sprint.status}</div>` : ''}</div>
+    <div class="sprint-header">${sprint.name}<div class="sprint-date">${sprint.date}</div>${sprint.status ? `<div style="font-size:10px;margin-top:3px;background:rgba(255,255,255,0.2);border-radius:4px;padding:1px 6px;display:inline-block;">${sprint.status === 'Finalizado' ? '🔴' : '🟢'} ${sprint.status}</div>` : ''}</div>
     <div class="sprint-body">
       ${sprint.parallelNote ? `<div class="parallel-note">${sprint.parallelNote}</div>` : ''}
       ${sectionsHtml}
